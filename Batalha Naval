@@ -1,0 +1,87 @@
+import random
+import os
+
+def limpar_tela():
+    # Limpa o terminal para o jogo ficar bonito (Windows ou Linux/Mac)
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def criar_tabuleiro(tamanho):
+    return [["~"] * tamanho for _ in range(tamanho)]
+
+def imprimir_tabuleiro(tabuleiro, mostrar_navios=False, navios_pos=None):
+    print("\n    0 1 2 3 4") # Índices das colunas
+    print("  +----------")
+    for i, linha in enumerate(tabuleiro):
+        # Se você quiser debugar e ver os navios, use mostrar_navios=True
+        linha_exibicao = list(linha)
+        if mostrar_navios and navios_pos:
+            for (nl, nc) in navios_pos:
+                if linha_exibicao[nc] == "~":
+                    linha_exibicao[nc] = "N" # N de Navio
+        
+        print(f"{i} | {' '.join(linha_exibicao)}")
+
+def gerar_navios(tamanho, quantidade):
+    navios = set()
+    while len(navios) < quantidade:
+        lin = random.randint(0, tamanho - 1)
+        col = random.randint(0, tamanho - 1)
+        navios.add((lin, col))
+    return list(navios)
+
+def jogar():
+    TAMANHO = 5
+    QTD_NAVIOS = 3
+    tentativas_restantes = 10
+    navios_abatidos = 0
+    
+    tabuleiro = criar_tabuleiro(TAMANHO)
+    posicoes_navios = gerar_navios(TAMANHO, QTD_NAVIOS)
+    
+    limpar_tela()
+    print("================================")
+    print("   ⚓ BATALHA NAVAL PYTHON ⚓   ")
+    print("================================")
+    print(f"Objetivo: Destrua {QTD_NAVIOS} navios em {tentativas_restantes} tiros!")
+
+    while tentativas_restantes > 0 and navios_abatidos < QTD_NAVIOS:
+        imprimir_tabuleiro(tabuleiro)
+        print(f"\nNavios abatidos: {navios_abatidos} | Tiros restantes: {tentativas_restantes}")
+        
+        try:
+            alvo_l = int(input("Escolha a LINHA (0-4): "))
+            alvo_c = int(input("Escolha a COLUNA (0-4): "))
+            
+            if not (0 <= alvo_l < TAMANHO and 0 <= alvo_c < TAMANHO):
+                print("❌ Coordenada fora do mapa! Tente 0 a 4.")
+                continue
+                
+            if tabuleiro[alvo_l][alvo_c] != "~":
+                print("⚠️ Você já atirou aqui! Escolha outro lugar.")
+                continue
+                
+            tentativas_restantes -= 1
+            
+            if (alvo_l, alvo_c) in posicoes_navios:
+                print("\n💥 FOGO! Você acertou um navio!")
+                tabuleiro[alvo_l][alvo_c] = "X"
+                navios_abatidos += 1
+            else:
+                print("\n💦 ÁGUA... Não foi desta vez.")
+                tabuleiro[alvo_l][alvo_c] = "O"
+                
+        except ValueError:
+            print("❌ Por favor, digite apenas números inteiros!")
+
+    # Resultado Final
+    limpar_tela()
+    if navios_abatidos == QTD_NAVIOS:
+        print("🏆 VITÓRIA! Você limpou os mares!")
+    else:
+        print("💀 DERROTA... Sua frota recuou.")
+    
+    print("\nTabuleiro final (X = acerto, O = erro, N = navio restante):")
+    imprimir_tabuleiro(tabuleiro, mostrar_navios=True, navios_pos=posicoes_navios)
+
+if __name__ == "__main__":
+    jogar()
